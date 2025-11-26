@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CipherIQ - Cryptography Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        /* Custom styles for aesthetic enhancements */
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-color: #0d1117; /* Default Dark background */
+            transition: background-color 0.3s;
+        }
+        .card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        /* Result Box Styling */
+        .hash-result {
+            border-left: 4px solid #f97316; /* Orange */
+        }
+        .encrypted-result {
+            border-left: 4px solid #22c55e; /* Green */
+        }
+        .unknown-result {
+            border-left: 4px solid #f59e0b; /* Yellow */
+        }
+        
+        /* Button hover/active states */
+        .btn-primary:hover {
+            transform: scale(1.02);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .tab-active {
+            border-bottom: 2px solid #6366f1; /* Indigo-500 */
+            color: #fff;
+        }
+        /* Style for Swagger Simulation JSON output */
+        .json-output {
+            background-color: #1f2937; /* Gray-800 */
+            border: 1px solid #374151; /* Gray-700 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #d1d5db; /* Gray-300 */
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        /* Light Mode Styles */
+        .light-mode {
+            background-color: #f3f4f6;
+        }
+        .light-mode .bg-gray-800 {
+            background-color: #ffffff;
+            color: #1f2937;
+            border-color: #e5e7eb;
+        }
+        .light-mode .text-gray-400 {
+            color: #6b7280;
+        }
+        .light-mode .text-gray-100 {
+            color: #1f2937;
+        }
+        .light-mode .bg-gray-700 {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        .light-mode .bg-gray-900 {
+            background-color: #f3f4f6;
+        }
+        .light-mode textarea {
+            color: #1f2937 !important;
+        }
+        /* Group divider style */
+        .group-divider {
+            grid-column: 1 / -1; /* Span all columns in the grid */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            color: #9ca3af; /* Gray-400 */
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #374151; /* Gray-700 */
+            font-size: 0.875rem;
+        }
+        .light-mode .group-divider {
+            color: #4b5563; /* Gray-600 */
+            border-bottom: 1px solid #d1d5db; /* Gray-300 */
+        }
+    
+
+/* === MERGED ENHANCED CSS (from index.html) === */
+
+        /* ========================================= */
+        /* ENHANCED ANIMATIONS & IMPROVED STYLES   */
+        /* ========================================= */
+        
+        /* Core Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(99, 102, 241, 0.8);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @keyframes bounce-in {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes rotate-gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes warning-pulse {
+            0%, 100% {
+                border-color: #ef4444;
+                background-color: rgba(153, 27, 27, 0.3);
+            }
+            50% {
+                border-color: #f87171;
+                background-color: rgba(153, 27, 27, 0.5);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Base Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-color: #0d1117;
+            transition: background-color 0.5s ease;
+            position: relative;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 50%, #0d1117 100%);
+            background-size: 200% 200%;
+            animation: rotate-gradient 15s ease infinite;
+            z-index: -1;
+        }
+
+        /* Card Styles with Animation */
+        .card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Result Box Styling with animations */
+        .hash-result {
+            border-left: 4px solid #f97316;
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .encrypted-result {
+            border-left: 4px solid #22c55e;
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .unknown-result {
+            border-left: 4px solid #f59e0b;
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        /* Enhanced Button Animations */
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Tab animations */
+        .tab-button {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #6366f1;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .tab-button:hover::after {
+            width: 80%;
+        }
+
+        .tab-active::after {
+            width: 100% !important;
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #6366f1;
+            color: #fff;
+        }
+
+        /* Animated title gradient */
+        .gradient-text {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6, #06b6d4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rotate-gradient 8s ease infinite;
+        }
+
+        /* Confidence bar animation */
+        .confidence-bar {
+            transition: width 1s ease-out, background-color 0.5s ease;
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Collision warning animation */
+        .collision-alert {
+            animation: warning-pulse 2s infinite, bounce-in 0.5s ease-out;
+        }
+
+        /* JSON output with typing effect */
+        .json-output {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #d1d5db;
+            max-height: 400px;
+            overflow-y: auto;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        /* Light Mode Styles */
+        .light-mode {
+            background-color: #f3f4f6;
+        }
+
+        .light-mode::before {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 50%, #f3f4f6 100%);
+        }
+
+        .light-mode .bg-gray-800 {
+            background-color: #ffffff;
+            color: #1f2937;
+            border-color: #e5e7eb;
+        }
+        
+        .light-mode .text-gray-400 {
+            color: #6b7280;
+        }
+        
+        .light-mode .text-gray-100 {
+            color: #1f2937;
+        }
+        
+        .light-mode .bg-gray-700 {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        
+        .light-mode .bg-gray-900 {
+            background-color: #f3f4f6;
+        }
+        
+        .light-mode textarea {
+            color: #1f2937 !important;
+        }
+
+        /* Group divider style */
+        .group-divider {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            color: #9ca3af;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #374151;
+            font-size: 0.875rem;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .light-mode .group-divider {
+            color: #4b5563;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        /* View transition */
+        .view-content {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Icon hover effect */
+        svg {
+            transition: transform 0.3s ease;
+        }
+
+        button:hover svg {
+            transform: scale(1.1);
+        }
+
+        /* Metric grid animation */
+        .metric-item {
+            animation: fadeInUp 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .metric-item:nth-child(1) { animation-delay: 0.1s; }
+        .metric-item:nth-child(2) { animation-delay: 0.2s; }
+        .metric-item:nth-child(3) { animation-delay: 0.3s; }
+        .metric-item:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Copy button feedback */
+        .copy-success {
+            animation: bounce-in 0.3s ease-out;
+        }
+
+        /* Header Animation */
+        header {
+            animation: fadeInUp 0.4s ease-out;
+        }
+    
+
+
+
+/* === ADDED: Advanced Animations & Effects === */
+/* Neon Glow Hover Effect */
+.glow-hover:hover {
+    box-shadow: 0 0 15px rgba(99,102,241,0.9), 0 0 30px rgba(99,102,241,0.6);
+    transform: scale(1.03);
+    transition: all 0.28s ease;
+}
+/* Particle subtle background motion */
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    animation: moveParticles 30s linear infinite;
+    z-index: -2;
+    pointer-events: none;
+    opacity: 0.6;
+}
+@keyframes moveParticles { from { background-position: 0 0; } to { background-position: 200px 200px; } }
+/* Sequential fade-in for cards (staggered when applicable) */
+.card { opacity: 0; transform: translateY(18px); animation: cardFadeIn 0.7s ease-out forwards; }
+@keyframes cardFadeIn { to { opacity: 1; transform: translateY(0); } }
+.card:nth-of-type(1) { animation-delay: 0.1s; }
+.card:nth-of-type(2) { animation-delay: 0.22s; }
+.card:nth-of-type(3) { animation-delay: 0.34s; }
+.card:nth-of-type(4) { animation-delay: 0.46s; }
+/* Button ripple effect (pure CSS with scaling pseudo-element) */
+.btn-primary { position: relative; overflow: hidden; }
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.8s;
+    pointer-events: none;
+    opacity: 0;
+}
+.btn-primary:active::after {
+    transform: translate(-50%, -50%) scale(40);
+    opacity: 1;
+    transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.45s;
+}
+/* Typewriter effect for AI explanation output */
+.typewriter { overflow: hidden; white-space: pre-wrap; display: inline-block; border-right: .12em solid rgba(244,114,182,0.9); animation: blinkCaret 0.8s step-end infinite; max-width: 100%; }
+@keyframes blinkCaret { 50% { border-color: transparent; } }
+/* Small utility: make primary interactive items glow */
+.glow-outline { box-shadow: 0 6px 18px rgba(99,102,241,0.06); transition: box-shadow 0.25s ease, transform 0.18s ease; }
+.glow-outline:hover { box-shadow: 0 12px 30px rgba(99,102,241,0.16); }
+/* Ensure AI loading spinner consistent */
+.ai-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.12); border-top-color: rgba(244,114,182,0.95); border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 8px; vertical-align: middle; }
+/* Small responsiveness tweak for API key input */
+#openai-api-key { -webkit-text-security: disc; }
+
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl">
+        <header class="text-center mb-6 relative">
+            <h1 class="text-4xl font-extrabold text-white mb-2">
+                <span class="gradient-text">
+                    CipherIQ
+                </span>
+            </h1>
+            <p class="text-gray-400 text-lg">Cryptographic Analysis and Generation Suite</p>
+            
+            <button id="dark-mode-toggle" class="absolute top-0 right-0 p-2 rounded-full text-gray-400 hover:text-white transition duration-200" title="Toggle Dark/Light Mode">
+                <svg id="moon-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="sun-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+        </header>
+
+        <div class="flex border-b border-gray-700 mb-6">
+            <button class="tab-button flex-1 py-3 px-4 text-gray-400 font-medium transition duration-200 text-center flex items-center justify-center space-x-2" data-target="analyzer-view">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>1. Analyzer</span>
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 text-gray-400 font-medium transition duration-200 text-center flex items-center justify-center space-x-2" data-target="converter-view">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-2.42 2.42a1 1 0 0 0-.29.71v5l-5 5-5-5v-5a1 1 0 0 0-.29-.71l2.42-2.42a6 6 0 0 1 7.94-7.94l-3.77-3.77a1 1 0 0 0 0-1.4z"/></svg>
+                <span>2. Converter</span>
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 text-gray-400 font-medium transition duration-200 text-center flex items-center justify-center space-x-2" data-target="batch-view">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7l-5-5z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9l2 2 4-4"/><path d="M10 13l2 2 4-4"/><path d="M10 17l2 2 4-4"/></svg>
+                <span>3. Batch Analysis</span>
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 text-gray-400 font-medium transition duration-200 text-center tab-active flex items-center justify-center space-x-2" data-target="api-view">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>4. Webhook / API</span>
+            </button>
+        </div>
+
+        <div id="views-container">
+
+            <div id="analyzer-view" class="view-content hidden">
+                <div class="card bg-gray-800 p-6 rounded-xl mb-8 border border-gray-700">
+                    <label for="input-string" class="block text-sm font-medium text-gray-300 mb-2">String to Analyze</label>
+                    <textarea id="input-string" rows="4" class="w-full p-3 bg-gray-700 border border-indigo-500 rounded-lg text-white placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 resize-none" placeholder="Paste your cryptographic string here..."></textarea>
+                    
+                    <button id="analyze-button" class="btn-primary mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-lg shadow-indigo-600/40">
+                        Analyze String
+                    </button>
+                </div>
+
+                <div id="result-container" class="card bg-gray-800 p-6 rounded-xl hidden border border-gray-700">
+                    <h2 class="text-2xl font-semibold text-gray-100 mb-4 border-b border-gray-700 pb-2">Analysis Report</h2>
+                    <div id="result-box" class="p-4 rounded-lg transition duration-300 ease-in-out">
+                        
+                        <div id="collision-warning" class="collision-alert p-3 rounded-lg border-2 border-red-500 bg-red-900/40 text-red-300 font-semibold mb-4 hidden">
+                            <p class="flex items-center">
+                                <span class="text-xl mr-2">🚨</span> 
+                                <span id="collision-type"></span> **COLLISION DETECTED!** Matches a known weak password in the rainbow table. **DO NOT USE THIS HASH.**
+                            </p>
+                        </div>
+                        
+                        <p class="text-xl font-medium mb-4 flex items-center">
+                            <span id="result-icon" class="mr-3 text-3xl flex-shrink-0"></span>
+                            <span id="result-type" class="font-bold text-white"></span>
+                        </p>
+
+                        <div class="grid md:grid-cols-2 grid-cols-1 gap-4 mt-4 p-3 bg-gray-700 rounded-lg">
+                            <div class="col-span-full border-b border-gray-600 pb-3">
+                                <p class="text-sm text-gray-400">
+                                    <span class="font-bold text-gray-300">Guessed Algorithm:</span> 
+                                    <span id="result-algorithm" class="text-white font-mono text-base ml-2"></span>
+                                </p>
+                            </div>
+                            
+                            <div class="pt-1">
+                                <p class="text-sm text-gray-400 mb-1">
+                                    <span class="font-bold text-gray-300">Confidence Score:</span> 
+                                </p>
+                                <div class="w-full bg-gray-600 rounded-full h-2.5">
+                                    <div id="confidence-bar" class="confidence-bar h-2.5 rounded-full" style="width: 0%; background-color: #6366f1;"></div>
+                                </div>
+                                <span id="result-confidence" class="text-white font-mono text-sm mt-1 inline-block"></span>
+                            </div>
+                            <div class="pt-1">
+                                <p class="text-sm text-gray-400">
+                                    <span class="font-bold text-gray-300" title="Measures the unpredictability and randomness of the data. High entropy (closer to 8) suggests compressed or encrypted data.">Entropy (bits/char):</span> 
+                                    <span id="result-entropy" class="text-white font-mono text-sm ml-2"></span>
+                                </p>
+                            </div>
+                            <div class="col-span-full border-t border-gray-600 pt-3">
+                                <p class="text-sm text-gray-400">
+                                    <span class="font-bold text-gray-300">String Length:</span> 
+                                    <span id="result-length" class="text-white font-mono text-base ml-2"></span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-gray-900 border border-gray-700 rounded-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-sm font-bold text-gray-300">Decoded Preview / Insight</p>
+                                <button id="copy-button" class="text-xs text-indigo-400 hover:text-indigo-300 transition duration-150 p-1 rounded bg-gray-800" title="Copy Decoded Preview">
+                                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2"></path></svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <pre id="result-decoded" class="text-xs text-gray-200 overflow-x-auto whitespace-pre-wrap"></pre>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500 mt-4 italic" id="result-note"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="converter-view" class="view-content hidden">
+                <div class="card bg-gray-800 p-6 rounded-xl mb-6 border border-gray-700">
+                    <label for="converter-input" class="block text-sm font-medium text-gray-300 mb-2">Input String/Data to Convert</label>
+                    <textarea id="converter-input" rows="4" class="w-full p-3 bg-gray-700 border border-teal-500 rounded-lg text-white placeholder-gray-500 focus:ring-teal-500 focus:border-teal-500 transition duration-200 resize-none" placeholder="Enter text or number data to encode/hash..."></textarea>
+                    
+                    <p class="mt-4 text-sm font-medium text-gray-300">Select Conversion:</p>
+
+                    <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        
+                        <span class="group-divider">Hashing (One-Way)</span>
+                        <button class="converter-btn btn-primary bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-orange-600/40" data-format="md5-hash">MD5</button>
+                        <button class="converter-btn btn-primary bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-orange-600/40" data-format="sha1-hash">SHA-1</button>
+                        <button class="converter-btn btn-primary bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-orange-600/40" data-format="sha256-hash">SHA-256</button>
+                        <button class="converter-btn btn-primary bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-orange-600/40" data-format="sha512-hash">SHA-512</button>
+                        <button class="converter-btn btn-primary bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-orange-600/40" data-format="ripemd160-hash">RIPEMD-160</button>
+
+                        <span class="group-divider">Encoding/Decoding (Reversible)</span>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="base64-encode">Base64 Encode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="base64-decode">Base64 Decode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="url-encode">URL Encode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="url-decode">URL Decode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="hex-encode">Hex Encode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="hex-decode">Hex Decode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="binary-encode">Binary Encode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="binary-decode">Binary Decode</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="ascii-to-decimal">ASCII to Dec</button>
+                        <button class="converter-btn btn-primary bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-teal-600/40" data-format="decimal-to-ascii">Dec to ASCII</button>
+
+                        <span class="group-divider">Ciphers & Text Tools</span>
+                        <button class="converter-btn btn-primary bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-fuchsia-600/40" data-format="rot13">ROT13 Cipher</button>
+                        <button class="converter-btn btn-primary bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-fuchsia-600/40" data-format="caesar-encrypt">Caesar Enc (+3)</button>
+                        <button class="converter-btn btn-primary bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-fuchsia-600/40" data-format="caesar-decrypt">Caesar Dec (-3)</button>
+                        <button class="converter-btn btn-primary bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-purple-600/40" data-format="to-uppercase">To UPPER</button>
+                        <button class="converter-btn btn-primary bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-purple-600/40" data-format="to-lowercase">to lower</button>
+                        <button class="converter-btn btn-primary bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-2 text-sm rounded-lg transition duration-150 shadow-lg shadow-purple-600/40" data-format="reverse-text">Reverse Text</button>
+                    </div>
+                </div>
+
+                <div id="converter-output-container" class="card bg-gray-800 p-6 rounded-xl border border-gray-700 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-100 mb-4 border-b border-gray-700 pb-2">Conversion Output</h2>
+                    <div class="p-4 bg-gray-700 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-sm font-bold text-gray-300">Result (<span id="converter-format-label" class="text-teal-400">Select a Format</span>)</p>
+                            <button id="converter-copy-button" class="text-xs text-indigo-400 hover:text-indigo-300 transition duration-150 p-1 rounded bg-gray-800" title="Copy Conversion Result">
+                                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v2"></path></svg>
+                                Copy
+                            </button>
+                        </div>
+                        <pre id="converter-output-box" class="text-base text-white overflow-x-auto whitespace-pre-wrap"></pre>
+                    </div>
+                    
+                    <button id="ai-explain-button" class="btn-primary mt-1 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-lg shadow-pink-600/40 disabled:opacity-50" disabled>
+                        🧠 Explain This Function with AI
+                    </button>
+
+                    <div id="ai-explanation-container" class="card bg-gray-900 p-4 rounded-xl border border-gray-700 mt-4 hidden">
+                        <h3 class="text-sm font-bold text-pink-400 mb-2">AI Explanation (<span id="ai-format-label">...</span>)</h3>
+                        <div id="ai-explanation-output" class="text-sm text-gray-300 whitespace-pre-wrap">
+                            </div>
+                        <div id="ai-loading" class="text-sm text-gray-500 hidden mt-2 flex items-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-pink-500 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Generating explanation...
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-500 mt-4 italic">Note: Hashing is one-way. Encoding and ciphers are reversible with the appropriate function.</p>
+                </div>
+            </div>
+
+            <div id="batch-view" class="view-content hidden">
+                <div class="card bg-gray-800 p-6 rounded-xl border border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-100 mb-4 border-b border-gray-700 pb-2">3. Batch File Upload</h2>
+                    <p class="text-gray-400 mb-4 text-sm">Upload a `.txt` or `.csv` file (one string per line) for bulk analysis.</p>
+
+                    <input type="file" id="file-upload" accept=".txt,.csv" class="w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-indigo-500 file:text-white
+                        hover:file:bg-indigo-600 mb-4
+                    "/>
+                    
+                    <button id="batch-analyze-button" class="btn-primary w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-lg shadow-green-600/40">
+                        Process Batch & Generate Report
+                    </button>
+
+                    <div id="batch-status" class="mt-4 p-3 bg-gray-900 rounded-lg text-sm text-gray-300 hidden">
+                        Processing...
+                    </div>
+                    
+                    <button id="download-report-button" class="mt-4 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-lg shadow-cyan-600/40 hidden">
+                        Download Report (.csv)
+                    </button>
+                </div>
+            </div>
+
+            <div id="api-view" class="view-content tab-active">
+                <div class="card bg-gray-800 p-6 rounded-xl border border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-100 mb-4 border-b border-gray-700 pb-2">4. Webhook Simulation & API Tester</h2>
+                    <p class="text-gray-400 mb-4 text-sm">Simulate synchronous API calls and asynchronous Webhook triggers locally.</p>
+
+                    <div class="bg-gray-900 p-4 rounded-lg mb-4">
+                        <h3 class="text-lg font-bold text-green-400 mb-2">GET /analyze?string={input} (Sync)</h3>
+                        <p class="text-sm text-gray-400 mb-3">Analyze a single string immediately.</p>
+                        
+                        <input type="text" id="api-input-string" placeholder="Enter string for API analysis..." class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-500"/>
+                        
+                        <button id="api-analyze-button" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                            Execute GET /analyze
+                        </button>
+                        
+                        <div class="mt-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-1">JSON Response:</p>
+                            <pre id="api-output-single" class="json-output overflow-x-auto"></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold text-blue-400 mb-2">POST /batch-analyze (Webhook Simulation)</h3>
+                        <p class="text-sm text-gray-400 mb-3">Upload file to trigger asynchronous analysis. Webhook confirmation shows here.</p>
+                        
+                        <input type="file" id="api-file-upload" accept=".txt,.csv" class="w-full text-sm text-gray-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-500 file:text-white
+                            hover:file:bg-blue-600
+                        "/>
+                        
+                        <button id="api-batch-analyze-button" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                            Execute POST /batch-analyze
+                        </button>
+                        
+                        <div class="mt-4">
+                            <p class="text-xs font-semibold text-gray-500 mb-1">Webhook Response (Confirmation / First 5 Results):</p>
+                            <pre id="api-output-batch" class="json-output overflow-x-auto"></pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <script>
+        // --- WEAK HASH DETECTION INITIALIZATION (NEW) ---
+        const WEAK_PASSWORDS_STRING = `123
+12345
+123456
+12345678
+123456789
+abc
+abcd
+acbde
+abc123
+iloveyou
+i love you
+000`; 
+
+        const WEAK_PASSWORDS = WEAK_PASSWORDS_STRING.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+        let WEAK_HASH_CACHE = {}; 
+
+        /**
+         * Pre-calculates MD5 and SHA-256 hashes for the weak password list.
+         */
+        function initializeWeakHashes() {
+            WEAK_HASH_CACHE.MD5 = new Set();
+            WEAK_HASH_CACHE.SHA256 = new Set();
+            
+            WEAK_PASSWORDS.forEach(pwd => {
+                // MD5 (32 chars)
+                WEAK_HASH_CACHE.MD5.add(CryptoJS.MD5(pwd).toString().toLowerCase());
+                // SHA-256 (64 chars)
+                WEAK_HASH_CACHE.SHA256.add(CryptoJS.SHA256(pwd).toString().toLowerCase());
+            });
+        }
+
+        /**
+         * Checks if the given hash matches a pre-calculated weak hash.
+         * @param {string} hash The hash string to check.
+         * @returns {string | null} The type of collision ('MD5' or 'SHA-256') or null if no collision.
+         */
+        function checkCollision(hash) {
+            const normalizedHash = hash.trim().toLowerCase().replace(/[\s:]/g, '');
+            const len = normalizedHash.length;
+            
+            if (len === 32 && WEAK_HASH_CACHE.MD5.has(normalizedHash)) {
+                return 'MD5';
+            }
+            if (len === 64 && WEAK_HASH_CACHE.SHA256.has(normalizedHash)) {
+                return 'SHA-256';
+            }
+            return null;
+        }
+
+        // --- DECODE UTILITIES ---
+
+        // Converts a standard Hex string (like "48656c6c6f") to ASCII/UTF-8 string
+        function hexToAscii(str) {
+            let hex = str.toString().trim().replace(/[\s:]/g, ''); 
+            if (hex.length % 2 !== 0) return "Error: Hex string length is odd (invalid).";
+            
+            let result = '';
+            let isBinary = false;
+
+            for (let i = 0; i < hex.length; i += 2) {
+                const byte = parseInt(hex.substring(i, i + 2), 16);
+                if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) {
+                    isBinary = true;
+                    break;
+                }
+                result += String.fromCharCode(byte);
+            }
+            
+            if (isBinary) {
+                return `Decoded successfully into binary/non-printable data (${hex.length / 2} bytes). Not fully displayable.`;
+            }
+            
+            return result.length > 0 ? result : "Decoded to an empty string.";
+        }
+        
+        // Base64 decoding (for preview)
+        function base64Decode(str) {
+            try {
+                const s = str.trim().replace(/\s/g, '');
+                const decoded = atob(s);
+                const isPrintable = /^[\x20-\x7E\r\n\t]+$/.test(decoded);
+                
+                if (isPrintable) {
+                    return decoded.length > 300 ? decoded.substring(0, 300) + '...' : decoded;
+                } else {
+                    return `Decoded successfully into binary data (${decoded.length} bytes). Not directly printable.`;
+                }
+            } catch (e) {
+                return "Decoding failed (String is not valid Base64).";
+            }
+        }
+
+        // --- CORE ANALYSIS LOGIC ---
+        
+        const HASH_PATTERNS = [
+            { name: "MD5", length: 32, type: "HASH", note: "Fixed-length hexadecimal hash. Low security for passwords.", confidence: 95 },
+            { name: "SHA-1", length: 40, type: "HASH", note: "Fixed-length hexadecimal hash. Considered weak.", confidence: 95 },
+            { name: "SHA-256", length: 64, type: "HASH", note: "Fixed-length hexadecimal hash. Stronger, but often unsalted.", confidence: 90 },
+            { name: "SHA-512", length: 128, type: "HASH", note: "Fixed-length hexadecimal hash. Robust length.", confidence: 90 },
+            { name: "Bcrypt", length: null, regex: /^\$2[aby]\$[0-9]{2}\$[./0-9A-Za-z]{53}$/, type: "HASH", note: "Adaptive password hash (A-PHF). Highly secure.", confidence: 100 },
+            { name: "SCrypt", length: null, regex: /^\$(s1|3)\$[./0-9A-Za-z]+$/, type: "HASH", note: "Memory-hard key derivation function (KDF). Highly secure.", confidence: 100 },
+        ];
+
+        function isHexOnly(str) {
+            return /^[a-f0-9\s:]+$/i.test(str); 
+        }
+        
+        function isBase64(str) {
+            const s = str.trim().replace(/\s/g, '');
+            if (!s || s.length % 4 !== 0) return false; 
+            if (!/^[A-Za-z0-9+/]+={0,2}$/.test(s)) return false;
+            try {
+                atob(s); 
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function calculateEntropy(str) {
+            if (!str) return 0;
+            const len = str.length;
+            if (len === 0) return 0;
+
+            const frequencies = {};
+            for (let i = 0; i < len; i++) {
+                const char = str[i];
+                frequencies[char] = (frequencies[char] || 0) + 1;
+            }
+
+            let entropy = 0;
+            for (const char in frequencies) {
+                const probability = frequencies[char] / len;
+                entropy -= probability * Math.log2(probability);
+            }
+            return parseFloat(entropy.toFixed(3));
+        }
+
+        function analyzeString(input) {
+            const s = input.trim();
+            const len = s.length;
+            const entropy = calculateEntropy(s);
+            let decodedPreview = "N/A (Not a recognized encoding)";
+
+            if (len === 0) {
+                return { result: "UNKNOWN", algorithm: "No input provided", note: "Please enter a string to begin the analysis.", len: 0, confidence: 100, entropy: 0, decodedPreview: "Enter data." };
+            }
+            
+            for (const pattern of HASH_PATTERNS) {
+                if (pattern.regex && pattern.regex.test(s)) {
+                    return { result: "HASH", algorithm: pattern.name, note: pattern.note + " Identified by unique cryptographic prefix and structure.", len: len, confidence: pattern.confidence, entropy: entropy, decodedPreview: "N/A (Hashing is one-way)" };
+                }
+            }
+            
+            if (isHexOnly(s) && s.replace(/[\s:]/g, '').length % 2 === 0) {
+                const rawHexLen = s.replace(/[\s:]/g, '').length;
+                for (const pattern of HASH_PATTERNS) {
+                    if (pattern.length === rawHexLen) {
+                        return { result: "HASH", algorithm: pattern.name, note: pattern.note + " Matches the exact length and character set of this common hash.", len: len, confidence: pattern.confidence, entropy: entropy, decodedPreview: "N/A (Hashing is one-way)" };
+                    }
+                }
+            }
+
+            if (isBase64(s)) {
+                decodedPreview = base64Decode(s);
+                let confidence = 85;
+                let note = "Base64 is an encoding, frequently used to package raw ciphertext or structured data.";
+                if (entropy > 5.5) {
+                    confidence += 10;
+                    note += " High entropy strongly suggests the underlying data is randomized (e.g., encryption).";
+                }
+
+                return { 
+                    result: "ENCRYPTED/ENCODED", 
+                    algorithm: "Base64 Encoding", 
+                    note: note,
+                    len: len,
+                    confidence: Math.min(confidence, 100),
+                    entropy: entropy,
+                    decodedPreview: decodedPreview
+                };
+            }
+
+            if (isHexOnly(s) && s.replace(/[\s:]/g, '').length % 2 === 0) {
+                decodedPreview = hexToAscii(s); 
+                let algo = "Hexadecimal Data (Raw)";
+                let confidence = 70;
+                let note = "Generic hex format. Could be serialized data, a custom hash, or ciphertext.";
+                
+                return { 
+                    result: "ENCRYPTED/ENCODED", 
+                    algorithm: algo, 
+                    note: note,
+                    len: len,
+                    confidence: Math.min(confidence, 100),
+                    entropy: entropy,
+                    decodedPreview: decodedPreview
+                };
+            }
+
+            return { 
+                result: "UNKNOWN", 
+                algorithm: "Plain Text or Unrecognized Format", 
+                note: "The string does not match any common cryptographic pattern. Low confidence of being a secure hash or standard ciphertext.",
+                len: len,
+                confidence: 25,
+                entropy: entropy,
+                decodedPreview: "Displayed below is the raw input."
+            };
+        }
+
+        // --- 1. ANALYZER UI LOGIC (Includes Hash Collision Check) ---
+
+        const inputString = document.getElementById('input-string');
+        const collisionWarning = document.getElementById('collision-warning');
+        const collisionTypeSpan = document.getElementById('collision-type');
+        
+        const analyzerElements = {
+            resultContainer: document.getElementById('result-container'),
+            resultBox: document.getElementById('result-box'),
+            resultIcon: document.getElementById('result-icon'),
+            resultType: document.getElementById('result-type'),
+            resultAlgorithm: document.getElementById('result-algorithm'),
+            resultNote: document.getElementById('result-note'),
+            resultLength: document.getElementById('result-length'),
+            resultConfidence: document.getElementById('result-confidence'),
+            confidenceBar: document.getElementById('confidence-bar'),
+            resultEntropy: document.getElementById('result-entropy'),
+            resultDecoded: document.getElementById('result-decoded'),
+            copyButton: document.getElementById('copy-button')
+        };
+
+        const resultIconSVGs = {
+            HASH: `<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+            'ENCRYPTED/ENCODED': `<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20v-6a1.9 1.9 0 0 1 2-2h4a1.9 1.9 0 0 1 2 2v6"/><path d="M12 10V4"/><path d="M12 4H9.5a2.5 2.5 0 0 0-2.5 2.5V10"/><path d="M12 4H14.5a2.5 2.5 0 0 1 2.5 2.5V10"/><rect x="4" y="10" width="16" height="12" rx="2"/></svg>`,
+            UNKNOWN: `<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>`
+        };
+        
+        function displayAnalyzerResult(analysis) {
+            const elements = analyzerElements;
+            elements.resultContainer.classList.remove('hidden');
+            
+            // Base classes for the result box
+            const baseClasses = 'p-4 rounded-xl transition duration-300 ease-in-out';
+            
+            let colorClass, iconHtml, typeText;
+
+            if (analysis.result === 'HASH') {
+                colorClass = 'hash-result bg-orange-900/50 text-orange-400';
+                iconHtml = resultIconSVGs.HASH;
+                typeText = 'Identified Type: HASH';
+            } else if (analysis.result === 'ENCRYPTED/ENCODED') {
+                colorClass = 'encrypted-result bg-green-900/50 text-green-400';
+                iconHtml = resultIconSVGs['ENCRYPTED/ENCODED'];
+                typeText = 'Identified Type: ENCODING / CIPHERTEXT';
+            } else {
+                colorClass = 'unknown-result bg-yellow-900/50 text-yellow-400';
+                iconHtml = resultIconSVGs.UNKNOWN;
+                typeText = 'Identified Type: UNKNOWN / PLAINTEXT';
+            }
+
+            elements.resultBox.className = `${baseClasses} ${colorClass}`;
+            
+            // --- HASH COLLISION CHECK (NEW) ---
+            const inputHash = inputString.value.trim();
+            const collisionResult = analysis.result === 'HASH' ? checkCollision(inputHash) : null;
+            
+            if (collisionResult) {
+                collisionTypeSpan.textContent = collisionResult;
+                collisionWarning.classList.remove('hidden');
+                // Drop confidence significantly if it's a weak hash collision
+                analysis.confidence = Math.min(analysis.confidence, 10);
+            } else {
+                collisionWarning.classList.add('hidden');
+            }
+            // ------------------------------------
+
+            elements.resultIcon.innerHTML = iconHtml;
+            elements.resultType.textContent = typeText;
+            elements.resultAlgorithm.textContent = analysis.algorithm;
+            elements.resultNote.textContent = analysis.note;
+            elements.resultLength.textContent = analysis.len;
+            elements.resultConfidence.textContent = `${analysis.confidence}%`;
+            elements.resultEntropy.textContent = analysis.entropy;
+            
+            let previewContent = analysis.decodedPreview;
+            if (analysis.result === 'UNKNOWN' && analysis.len > 0) {
+                 previewContent = inputString.value.trim().substring(0, 300) + (inputString.value.trim().length > 300 ? '...' : '');
+            }
+            elements.resultDecoded.textContent = previewContent;
+
+            elements.confidenceBar.style.width = `${analysis.confidence}%`;
+            if (analysis.confidence < 40) {
+                elements.confidenceBar.style.backgroundColor = '#ef4444'; // Red
+            } else if (analysis.confidence < 75) {
+                elements.confidenceBar.style.backgroundColor = '#f97316'; // Orange
+            } else {
+                elements.confidenceBar.style.backgroundColor = '#6366f1'; // Indigo
+            }
+
+            elements.copyButton.onclick = () => copyToClipboard(previewContent);
+        }
+
+        document.getElementById('analyze-button').addEventListener('click', () => {
+            const input = inputString.value;
+            const analysis = analyzeString(input);
+            displayAnalyzerResult(analysis);
+        });
+
+        // --- 2. CONVERTER CORE LOGIC (EXPANDED) ---
+        
+        // Base64 Decode helper (safe version)
+        function safeBase64Decode(str) {
+            try { return atob(str.trim()); } catch (e) { return "Error: Invalid Base64 string."; }
+        }
+
+        function toHex(str) {
+            let hex = "";
+            for (let i = 0; i < str.length; i++) {
+                hex += str.charCodeAt(i).toString(16).padStart(2, '0');
+            }
+            return hex;
+        }
+
+        function toBinary(str) {
+            let binary = "";
+            for (let i = 0; i < str.length; i++) {
+                binary += str.charCodeAt(i).toString(2).padStart(8, '0') + " ";
+            }
+            return binary.trim();
+        }
+
+        function fromBinary(str) {
+            try {
+                const parts = str.trim().split(/\s+/).filter(p => p.length > 0);
+                let result = "";
+                for (const part of parts) {
+                    if (part.length !== 8) throw new Error("Invalid binary format. Must be 8-bit chunks.");
+                    const charCode = parseInt(part, 2);
+                    result += String.fromCharCode(charCode);
+                }
+                return result;
+            } catch (e) {
+                return `Error: ${e.message}`;
+            }
+        }
+
+        function rot13(str) {
+            return str.replace(/[a-zA-Z]/g, function(c) {
+                const charCode = c.charCodeAt(0);
+                const isUpperCase = charCode >= 65 && charCode <= 90;
+                const offset = isUpperCase ? 65 : 97;
+                return String.fromCharCode(((charCode - offset + 13) % 26) + offset);
+            });
+        }
+        
+        function caesar(str, shift) {
+            return str.replace(/[a-zA-Z]/g, function(c) {
+                const charCode = c.charCodeAt(0);
+                const isUpperCase = charCode >= 65 && charCode <= 90;
+                const offset = isUpperCase ? 65 : 97;
+                
+                let newCharCode = charCode - offset;
+                newCharCode = (newCharCode + shift) % 26;
+                if (newCharCode < 0) newCharCode += 26;
+                
+                return String.fromCharCode(newCharCode + offset);
+            });
+        }
+
+        function asciiToDecimal(str) {
+            let result = "";
+            for (let i = 0; i < str.length; i++) {
+                result += str.charCodeAt(i) + (i < str.length - 1 ? " " : "");
+            }
+            return result;
+        }
+        
+        function decimalToAscii(str) {
+            try {
+                const parts = str.trim().split(/\s+/).filter(p => p.length > 0);
+                let result = "";
+                for (const part of parts) {
+                    const charCode = parseInt(part, 10);
+                    if (isNaN(charCode)) throw new Error("Contains non-numeric parts.");
+                    result += String.fromCharCode(charCode);
+                }
+                return result;
+            } catch (e) {
+                return `Error: Invalid numeric input format (${e.message}).`;
+            }
+        }
+
+        const converterInput = document.getElementById('converter-input');
+        const converterOutputContainer = document.getElementById('converter-output-container');
+        const converterOutputBox = document.getElementById('converter-output-box');
+        const converterFormatLabel = document.getElementById('converter-format-label');
+        const converterCopyButton = document.getElementById('converter-copy-button');
+        
+        const aiExplainButton = document.getElementById('ai-explain-button');
+        let currentConverterFormat = null;
+        
+        document.querySelectorAll('.converter-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const format = e.target.getAttribute('data-format');
+                const input = converterInput.value;
+                let output = '';
+                let label = '';
+                currentConverterFormat = format; // Set for AI button
+
+                if (input.trim() === '') {
+                    output = 'Input cannot be empty.';
+                    label = 'Error';
+                } else {
+                    try {
+                        switch (format) {
+                            // HASHING (CryptoJS)
+                            case 'md5-hash': output = CryptoJS.MD5(input).toString(); label = 'MD5 Hash (Hex)'; break;
+                            case 'sha1-hash': output = CryptoJS.SHA1(input).toString(); label = 'SHA-1 Hash (Hex)'; break;
+                            case 'sha256-hash': output = CryptoJS.SHA256(input).toString(); label = 'SHA-256 Hash (Hex)'; break;
+                            case 'sha512-hash': output = CryptoJS.SHA512(input).toString(); label = 'SHA-512 Hash (Hex)'; break;
+                            case 'ripemd160-hash': output = CryptoJS.RIPEMD160(input).toString(); label = 'RIPEMD-160 Hash (Hex)'; break;
+                            
+                            // ENCODING / DECODING
+                            case 'base64-encode': output = btoa(input); label = 'Base64 Encoded'; break;
+                            case 'base64-decode': output = safeBase64Decode(input); label = 'Base64 Decoded'; break;
+                            case 'url-encode': output = encodeURIComponent(input); label = 'URL Encoded'; break;
+                            case 'url-decode': output = decodeURIComponent(input); label = 'URL Decoded'; break;
+                            case 'hex-encode': output = toHex(input); label = 'Hex Encoded (ASCII)'; break;
+                            case 'hex-decode': output = hexToAscii(input); label = 'Hex Decoded (ASCII/UTF-8)'; break;
+                            case 'binary-encode': output = toBinary(input); label = 'Binary Encoded (8-bit)'; break;
+                            case 'binary-decode': output = fromBinary(input); label = 'Binary Decoded (8-bit)'; break;
+                            case 'ascii-to-decimal': output = asciiToDecimal(input); label = 'ASCII to Decimal Codes'; break;
+                            case 'decimal-to-ascii': output = decimalToAscii(input); label = 'Decimal Codes to ASCII'; break;
+
+                            // CIPHERS / TEXT TOOLS
+                            case 'rot13': output = rot13(input); label = 'ROT13 Cipher'; break;
+                            case 'caesar-encrypt': output = caesar(input, 3); label = 'Caesar Encrypt (Shift +3)'; break;
+                            case 'caesar-decrypt': output = caesar(input, -3); label = 'Caesar Decrypt (Shift -3)'; break;
+                            case 'to-uppercase': output = input.toUpperCase(); label = 'Uppercase Text'; break;
+                            case 'to-lowercase': output = input.toLowerCase(); label = 'Lowercase Text'; break;
+                            case 'reverse-text': output = input.split('').reverse().join(''); label = 'Reversed Text'; break;
+
+                            default: output = 'Unknown format selected.'; label = 'Error';
+                        }
+                    } catch (err) {
+                        output = `Processing Error: ${err.message}`;
+                        label = 'Error';
+                    }
+                }
+
+                converterFormatLabel.textContent = label;
+                converterOutputBox.textContent = output;
+                converterOutputContainer.classList.remove('hidden');
+                converterCopyButton.onclick = () => copyToClipboard(output);
+                aiExplainButton.disabled = false;
+                document.getElementById('ai-explanation-container').classList.add('hidden'); // Hide old explanation
+            });
+        });
+
+        
+// --- MODIFIED OFFLINE AI SIMULATION LOGIC ---
+
+/**
+ * Simulates a response from a local, offline "AI" based on the format name.
+ * This completely replaces the external OpenAI API call.
+ * @param {string} format The data-format string (e.g., 'sha256-hash').
+ * @param {string} formatName The human-readable format name (e.g., 'SHA-256 Hash (Hex)').
+ * @returns {string} The simulated AI explanation.
+ */
+function simulateOfflineAIExplanation(format, formatName) {
+    const explanations = {
+        'md5-hash': "MD5 is a widely used **hash function** producing a 128-bit (32-character) hexadecimal output. It's primarily used for quickly verifying file integrity. **Security Status: Critically Weak.** Due to being collision-prone and computationally fast, it's completely unsuitable for password storage or modern security tasks.",
+        'sha1-hash': "SHA-1 is a **hash function** producing a 160-bit (40-character) output. It's used for integrity checks, but is being phased out. **Security Status: Weak.** Known theoretical collision attacks make it unsuitable for high-security applications.",
+        'sha256-hash': "SHA-256 is part of the SHA-2 family, creating a 256-bit (64-character) **one-way hash**. It's commonly used in blockchain technology (like Bitcoin) and TLS/SSL certificates. **Security Status: Fair.** While not ideal for password hashing (needs salting and stretching), it remains cryptographically strong for integrity checks.",
+        'sha512-hash': "SHA-512 is a **hash function** producing a 512-bit (128-character) output. Its longer length offers excellent resistance against collisions. **Security Status: Strong.** It is a modern, reliable hash for verifying data integrity in sensitive systems.",
+        'ripemd160-hash': "RIPEMD-160 is a **cryptographic hash function** producing a 160-bit hash value. It is mainly used in Bitcoin and other cryptocurrencies for address generation. **Security Status: Moderate.** It remains cryptographically secure, although less common than SHA-256.",
+        
+        'base64-encode': "Base64 is a **reversible binary-to-text encoding** scheme that translates binary data into a sequence of 64 printable ASCII characters. Its main purpose is to safely transmit binary data, such as images or encrypted payloads, over media that only reliably support text. **Security Status: None.** It is an encoding, not an encryption method, and offers zero security or secrecy.",
+        'base64-decode': "Base64 decoding reverses the process of Base64 encoding to recover the original binary or text data. It is essential for processing encrypted data that was Base64-wrapped for transmission. **Security Status: None.** It is a reversal utility, unrelated to security.",
+        'url-encode': "URL encoding, or Percent-encoding, replaces certain characters with a '%' followed by their hexadecimal representation. This ensures that data passed in a URL is correctly interpreted by web servers. **Security Status: None.** It is a data normalization utility for web standards.",
+        'url-decode': "URL decoding reverses the process of URL encoding, converting hexadecimal sequences back into their original characters. It is used by web applications to read data safely submitted via a URL. **Security Status: None.** It is a data normalization utility for web standards.",
+        'hex-encode': "Hexadecimal encoding translates binary data into a base-16 number system, using characters 0-9 and A-F. It is used extensively in computing to represent raw byte data in a human-readable format. **Security Status: None.** It is purely a data representation format, offering no security.",
+        'hex-decode': "Hexadecimal decoding converts base-16 representations back into their original byte values (ASCII/UTF-8). It's commonly used in forensic analysis and debugging. **Security Status: None.** It is a data utility.",
+        
+        'rot13': "ROT13 is a simple **Caesar cipher** that substitutes a letter with the letter 13 positions after it in the alphabet. It's mainly used as a frivolous means of obfuscation in online forums to hide spoilers or punchlines. **Security Status: Trivial.** It can be instantly decrypted by applying the same ROT13 function again; it is not for security.",
+        'caesar-encrypt': "Caesar Encrypt is an implementation of the **Caesar cipher** which is a type of substitution cipher using a fixed shift (here, +3). It is one of the simplest and earliest known encryption techniques. **Security Status: Extremely Weak.** It is instantly breakable by frequency analysis or brute-forcing 25 possible keys.",
+        'caesar-decrypt': "Caesar Decrypt reverses the Caesar cipher's substitution to recover the original plaintext, using a negative shift (here, -3). It is the counterpart to the encryption function. **Security Status: Trivial.** It is a decryption utility for a weak cipher."
+    };
+
+    // Provide a detailed, context-aware, but generic response if the specific format is missing.
+    const genericExplanation = `The selected function, **${formatName}**, is a type of ${format.includes('hash') ? 'one-way cryptographic hashing algorithm' : format.includes('encode') || format.includes('decode') ? 'reversible data encoding or conversion scheme' : 'simple text cipher or transformation utility'}. Its primary role is to ${format.includes('hash') ? 'generate a unique, fixed-length digital fingerprint of the input data for integrity checking' : format.includes('encode') || format.includes('decode') ? 'transform data between different base formats (like text to binary or hex) for display or transmission' : 'modify the text structure, such as reversing it or changing case'}. **Security Status:** Security depends heavily on the specific function. Hashing is one-way (secure for integrity), while encodings and simple ciphers are easily reversed (low security).`;
+
+    return explanations[format] || genericExplanation;
+}
+
+// Wire up the AI explain button to use the new offline simulation
+(function wireOfflineAIExplain() {
+    const aiExplainButton = document.getElementById('ai-explain-button');
+    const aiLoading = document.getElementById('ai-loading');
+    const aiExplanationContainer = document.getElementById('ai-explanation-container');
+    const aiExplanationOutput = document.getElementById('ai-explanation-output');
+    const aiFormatLabel = document.getElementById('ai-format-label');
+    const apiKeyInput = document.getElementById('openai-api-key');
+    
+    // --- REMOVAL OF EXTERNAL API KEY INPUT & STYLING (MODIFICATION) ---
+    if (apiKeyInput) {
+        apiKeyInput.remove(); // Remove the API key input field
+    }
+
+    if (!aiExplainButton) return;
+    
+    // Update button text and style for local simulation (MODIFICATION)
+    aiExplainButton.textContent = "🧠 Explain Function (Offline Simulation)";
+    aiExplainButton.classList.remove('bg-pink-600', 'hover:bg-pink-700', 'shadow-pink-600/40');
+    aiExplainButton.classList.add('bg-blue-600', 'hover:bg-blue-700', 'shadow-blue-600/40');
+    
+    // Button is enabled by default if no input needed, but original code enables on format click.
+
+    aiExplainButton.addEventListener('click', async () => {
+        // Basic guard
+        if (!currentConverterFormat || converterInput.value.trim() === '') return;
+
+        const formatName = converterFormatLabel.textContent || "Selected Function";
+        const formatID = currentConverterFormat; // Get the data-format ID
+
+        aiFormatLabel.textContent = formatName;
+        aiExplanationOutput.textContent = '';
+        aiExplanationContainer.classList.remove('hidden');
+        aiLoading.classList.remove('hidden');
+        aiExplainButton.disabled = true;
+
+        // Simulate a network/processing delay (1-2 seconds) (MODIFICATION)
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 1000)); 
+
+        // Call the local simulation function (MODIFICATION)
+        const result = simulateOfflineAIExplanation(formatID, formatName);
+
+        aiLoading.classList.add('hidden');
+        aiExplainButton.disabled = false;
+
+        // Typewriter reveal the returned text
+        const txt = result.toString();
+        aiExplanationOutput.textContent = '';
+        aiExplanationOutput.classList.add('typewriter');
+        let i = 0;
+        const interval = setInterval(() => {
+            // Stop if user clicks away or clears input
+            if (!aiExplanationContainer.classList.contains('hidden') && i <= txt.length) {
+                aiExplanationOutput.textContent = txt.slice(0, i);
+                i++;
+            } else {
+                clearInterval(interval);
+                aiExplanationOutput.classList.remove('typewriter');
+            }
+        }, 25); // Slightly slower typewriter for more noticeable simulation
+    });
+})();
+
+
+// --- 3 & 4. BATCH / API LOGIC ---
+
+        const batchFileUpload = document.getElementById('file-upload');
+        const batchStatus = document.getElementById('batch-status');
+        const batchAnalyzeButton = document.getElementById('batch-analyze-button');
+        const downloadReportButton = document.getElementById('download-report-button');
+        let latestBatchResults = [];
+
+        function processBatch(inputLines) {
+            const results = [];
+            for (let i = 0; i < inputLines.length; i++) {
+                const line = inputLines[i].trim();
+                if (line) {
+                    const analysis = analyzeString(line);
+                    const collisionType = analysis.result === 'HASH' ? checkCollision(line) : null;
+                    
+                    results.push({
+                        id: i + 1,
+                        input_string: line,
+                        length: analysis.len,
+                        type: analysis.result,
+                        algorithm: analysis.algorithm,
+                        confidence: analysis.confidence,
+                        entropy: analysis.entropy,
+                        collision: collisionType ? `WEAK ${collisionType}` : 'NONE',
+                        note: analysis.note
+                    });
+                }
+            }
+            return results;
+        }
+
+        function handleFileProcessing(fileInput, statusElement, outputElement, isApi) {
+            const file = fileInput.files[0];
+            if (!file) {
+                const errorMessage = isApi ? JSON.stringify({ status: "error", message: "No file selected." }, null, 2) : 'Please select a file first.';
+                if (statusElement) statusElement.textContent = errorMessage;
+                if (outputElement) outputElement.textContent = errorMessage;
+                return;
+            }
+
+            if (statusElement) {
+                statusElement.classList.remove('hidden', 'text-red-400');
+                statusElement.classList.add('text-gray-300');
+                statusElement.textContent = `Processing file: ${file.name}...`;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                const lines = content.split('\n').filter(line => line.trim() !== '');
+                const results = processBatch(lines);
+                
+                if (isApi) {
+                    // Webhook Simulation Response
+                    const limitedResults = results.slice(0, 5);
+                    const jsonResponse = {
+                        status: "queued",
+                        queue_id: `CID-${Date.now()}`,
+                        total_records: results.length,
+                        webhook_simulated_callback: "https://cipheriq.com/api/callback/CID-...",
+                        first_5_results_preview: limitedResults,
+                        note: "Asynchronous processing started. Full report would be sent to callback URL."
+                    };
+                    outputElement.textContent = JSON.stringify(jsonResponse, null, 2);
+                    if (statusElement) statusElement.classList.add('hidden');
+
+                } else {
+                    latestBatchResults = results;
+                    if (results.length > 0) {
+                        batchStatus.textContent = `Batch analysis complete. ${results.length} strings analyzed.`;
+                        downloadReportButton.classList.remove('hidden');
+                    } else {
+                        batchStatus.textContent = 'File processed, but no valid strings were found.';
+                        downloadReportButton.classList.add('hidden');
+                    }
+                }
+            };
+            reader.onerror = () => {
+                 if (statusElement) statusElement.textContent = `Error reading file: ${reader.error.message}`;
+                 if (outputElement) outputElement.textContent = `Error reading file: ${reader.error.message}`;
+            };
+            reader.readAsText(file);
+        }
+
+        batchAnalyzeButton.addEventListener('click', () => {
+            downloadReportButton.classList.add('hidden');
+            handleFileProcessing(batchFileUpload, batchStatus, null, false);
+        });
+
+        downloadReportButton.addEventListener('click', () => {
+            if (latestBatchResults.length === 0) return;
+
+            const headers = ["ID", "Input_String", "Length", "Type", "Algorithm", "Confidence", "Entropy", "Collision", "Note"];
+            
+            const csvRows = latestBatchResults.map(row => 
+                headers.map(header => {
+                    let key = header.toLowerCase().replace('_', '');
+                    let value = row[key] || row[header.toLowerCase()];
+                    if (typeof value === 'string' && value.includes(',')) {
+                        value = `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                }).join(',')
+            );
+            
+            const csvContent = [headers.join(','), ...csvRows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", "cipheriq_analysis_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        
+        document.getElementById('api-analyze-button').addEventListener('click', () => {
+            const input = document.getElementById('api-input-string').value.trim();
+            const outputElement = document.getElementById('api-output-single');
+            
+            if (input === '') {
+                 outputElement.textContent = JSON.stringify({ status: "error", message: "Input string cannot be empty." }, null, 2);
+                 return;
+            }
+
+            const analysis = analyzeString(input);
+            const collisionType = analysis.result === 'HASH' ? checkCollision(input) : null;
+            
+            const jsonResponse = {
+                status: "success",
+                endpoint: "/analyze",
+                input: input,
+                analysis: {
+                    type: analysis.result,
+                    algorithm: analysis.algorithm,
+                    confidence_percent: analysis.confidence,
+                    entropy_bits_per_char: analysis.entropy,
+                    collision_check: collisionType ? `WEAK ${collisionType}` : 'NONE',
+                    note: analysis.note
+                }
+            };
+            outputElement.textContent = JSON.stringify(jsonResponse, null, 2);
+        });
+
+        document.getElementById('api-batch-analyze-button').addEventListener('click', () => {
+            handleFileProcessing(
+                document.getElementById('api-file-upload'), 
+                null, 
+                document.getElementById('api-output-batch'), 
+                true 
+            );
+        });
+
+        // --- UI UTILITIES (TABS, DARK MODE, CLIPBOARD) ---
+
+        function displayTab(targetId) {
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.add('hidden');
+            });
+            document.getElementById(targetId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('tab-active', 'text-white');
+                button.classList.add('text-gray-400');
+            });
+
+            document.querySelector(`.tab-button[data-target="${targetId}"]`).classList.add('tab-active', 'text-white');
+            document.querySelector(`.tab-button[data-target="${targetId}"]`).classList.remove('text-gray-400');
+        }
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const target = e.currentTarget.getAttribute('data-target');
+                displayTab(target);
+            });
+        });
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; 
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const button = document.activeElement;
+                if (button && button.tagName === 'BUTTON') {
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 1500);
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        const body = document.body;
+        const toggleButton = document.getElementById('dark-mode-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        toggleButton.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLightMode = body.classList.contains('light-mode');
+            
+            sunIcon.classList.toggle('hidden', !isLightMode);
+            moonIcon.classList.toggle('hidden', isLightMode);
+        });
+
+        window.onload = () => {
+            initializeWeakHashes(); // Initialize the weak hash lookup table
+            displayTab('api-view'); // Set default tab to API/Webhook view for this response
+        };
+    </script>
+</body>
+</html>
